@@ -1,0 +1,28 @@
+# Virtual environments
+venv/
+venv2/
+env/
+.env
+
+# Python compilation files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch saved models and weights
+*.pt
+*.pth
+*.ckpt
+
+# Datasets and large text files
+input.txt
+*.csv
+*.jsonl
+
+# IDE configurations
+.vscode/
+.idea/
+.DS_Store
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
