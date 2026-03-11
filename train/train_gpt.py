@@ -54,6 +54,11 @@ for iter in range(config.max_iters):
     optimizer.step()
 
 print("Training finished!")
+
+# Save the model
+print(f"Saving model to {config.checkpoint_path}")
+torch.save(model.state_dict(), config.checkpoint_path)
+
 # Generate from the model
 print("\n--- Generating some text ---")
 context = torch.zeros((1, 1), dtype=torch.long, device=config.device)
