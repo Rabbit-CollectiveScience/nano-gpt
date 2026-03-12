@@ -17,7 +17,6 @@ class GPTLanguageModel(nn.Module):
         super().__init__()
         # each token directly reads off the logits for the next token from a lookup table
         self.token_embedding_table = nn.Embedding(vocab_size, config.n_embd)
-        self.position_embedding_table = nn.Embedding(config.block_size, config.n_embd)
         self.blocks = nn.Sequential(*[Block(config.n_embd, n_head=config.n_head) for _ in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(config.n_embd) # final layer norm
 
@@ -37,8 +36,7 @@ class GPTLanguageModel(nn.Module):
 
         # idx and targets are both (B,T) tensor of integers
         tok_emb = self.token_embedding_table(idx) # (B,T,C)
-        pos_emb = self.position_embedding_table(torch.arange(T, device=config.device)) # (T,C)
-        x = tok_emb + pos_emb # (B,T,C)
+        x = tok_emb # position information is now injected dynamically via RoPE in the attention heads
         x = self.blocks(x) # (B,T,C)
         x = self.ln_f(x) # (B,T,C)
         
