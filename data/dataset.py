@@ -16,18 +16,18 @@ data_path = os.path.join(parent_dir, 'input.txt')
 with open(data_path, 'r', encoding='utf-8') as f:
     text = f.read()
 
-# Character-level vocabulary
-chars = sorted(list(set(text)))
-vocab_size = len(chars)
+import tiktoken
 
-# Create a mapping from characters to integers
-stoi = { ch:i for i,ch in enumerate(chars) }
-itos = { i:ch for i,ch in enumerate(chars) }
+# Load OpenAI's GPT-4 BPE tokenizer
+enc = tiktoken.get_encoding("cl100k_base")
+
+# The vocabulary size of this tokenizer is exactly 100,277
+vocab_size = enc.n_vocab
 
 # Encoder: takes a string, outputs a list of integers
-encode = lambda s: [stoi[c] for c in s]
+encode = lambda s: enc.encode(s, allowed_special={"<|endoftext|>"})
 # Decoder: takes a list of integers, outputs a string
-decode = lambda l: ''.join([itos[i] for i in l])
+decode = lambda l: enc.decode(l)
 
 # Train and validation splits
 data = torch.tensor(encode(text), dtype=torch.long)

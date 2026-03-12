@@ -1,8 +1,8 @@
 import torch
 
 # Hyperparameters based on standard character-level GPT
-batch_size = 64 # how many independent sequences will we process in parallel?
-block_size = 256 # what is the maximum context length for predictions?
+batch_size = 8 # shrunk to fit MPS memory
+block_size = 64 # shrunk to fit MPS memory
 max_iters = 200
 eval_interval = 500
 learning_rate = 3e-4
