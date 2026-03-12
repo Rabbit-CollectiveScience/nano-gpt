@@ -21,10 +21,11 @@ $$ \text{Attention}(Q_{rope}, K_{rope}, V) = \text{softmax}\left(\frac{Q_{rope}K
 $$ \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O $$
 $$ \text{where } \text{head}_i = \text{Attention}(Q_{rope}W_i^Q, K_{rope}W_i^K, VW_i^V) $$
 
-## 5. FeedForward Network (Pending Upgrade)
-*Currently using standard ReLU. Future upgrade target: SwiGLU.*
-$$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
+## 5. FeedForward Network (SwiGLU)
+LLaMA abandons the simple ReLU activation in favor of a Swish-Gated Linear Unit (SwiGLU). This requires calculating a "Gate" and a "Value" in parallel, applying the `SiLU` (Swish) non-linearity to the gate, and multiplying them together.
+$$ \text{Swish}(x) = x \cdot \text{Sigmoid}(x) $$
+$$ \text{SwiGLU}(x) = (\text{Swish}(x W_1) \odot (x W_3)) W_2 $$
 
-## 6. Normalization (Pending Upgrade)
-*Currently using standard LayerNorm. Future upgrade target: RMSNorm.*
-$$ \text{LayerNorm}(x) = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \odot \gamma + \beta $$
+## 6. Normalization (RMSNorm)
+LLaMA abandons standard LayerNorm because calculating the mean across every vector wastes GPU cycles. It instead calculates only the Root Mean Square, which stabilizes the network faster and much more efficiently.
+$$ \text{RMSNorm}(x) = \frac{x}{\sqrt{\frac{1}{d} \sum_{i=1}^d x_i^2 + \epsilon}} \odot \gamma $$

@@ -21,11 +21,25 @@ flowchart TD
 ```
 *Notice how there are no arrows crossing between the words. The FeedForward layer acts independently on every single token.*
 
-## How does it process?
+## How LLaMA Calculates: The SwiGLU Upgrade
 
-The math inside FeedForward is incredibly simple. It is a classic Neural Network.
+Classic Transformers passed the data through a single wire and erased negative numbers (`ReLU`). 
+The `model_llama` architecture uses a much more complex dual-path system called **SwiGLU**.
 
-1. **Expand:** The `Embedding_Size` (e.g. 384 numbers) is blown up out to `4 * Embedding_Size` (e.g. 1536 numbers). This massive expansion gives the token enough "surface area" to map out complex patterns.
-2. **Activate:** The numbers are run through a Non-Linear Activation Function (`ReLU`). Any negative numbers are crushed to 0. This gives the network the ability to understand curved, non-linear human logic.
-3. **Compress:** The massive 1536 vector is shrunk back down to exactly 384 numbers. 
-4. **Exit:** The newly refined 384-vector exits the FeedForward layer and goes to the next Transformer block!
+```mermaid
+flowchart TD
+    Input[Refined Vector] -->|Split| Gate
+    Input -->|Split| Value
+    
+    Gate -->|Swish Activation| ActivatedGate[Non-Linear Multiplier]
+    ActivatedGate -.-> Multiply((X))
+    
+    Value --> Multiply
+    Multiply --> Output[Final Processed Vector]
+```
+
+1. **The Dual Path:** The vector is linearly projected into two completely separate mathematical spaces: the **Gate** and the **Value**.
+2. **The Swish (SiLU):** The Gate vector is passed through a curved activation function. Instead of blindly deleting negative numbers like ReLU, Swish curves them gently, preserving deep, complex relationships.
+3. **The Multiplication:** The Activated Gate is physically multiplied against the Value. This allows the model to intelligently "turn off" or "turn on" different parts of the Value vector based on what context the Gate discovered!
+
+*For the exact Sigmoid mathematical equations used to calculate Swish, reference `llama.md` in the root folder!*

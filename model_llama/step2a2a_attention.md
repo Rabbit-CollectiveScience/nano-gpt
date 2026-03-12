@@ -30,24 +30,20 @@ flowchart TD
     V2 --> Final["My New Identity: 'Red Apple'"]
 ```
 
-## The Mathematics
+## The LLaMA Upgrade: Rotary Position Embeddings (RoPE)
 
-In a Neural Network, these Queries, Keys, and Values are just vectors (lists of numbers). The "matching process" is a simple dot-product multiplication. 
+In classic Transformers, tokens memorized their absolute position (e.g., "I am Word #4").
 
-```python
-# 1. How much do I care about every past word?
-scores = Query_Matrix @ Key_Matrix.transpose()
+LLaMA abandons this. In `model_llama`, we dynamically rotate the $Q$ and $K$ vectors right before they attempt to match with each other. The amount of rotation is determined by how far apart the two words are in the sentence. 
 
-# 2. Hide words from the future! (Autoregressive Masking)
-# We overwrite future words with -Infinity so the model cannot "cheat" by looking ahead.
-scores = scores.masked_fill(future_mask == 0, float('-inf'))
+If my $Q$ is at position 10, and your $K$ is at position 9, your vector is rotated just slightly. But if your $K$ is at position 2, it is rotated massively. This allows the model to inherently understand **Relative Distance** just by matching the angular alignments of the vectors!
 
-# 3. Squish the match scores into percentages (0% to 100%)
-# -Infinity becomes exactly 0%. Perfect matches become 99%.
-probabilities = Softmax(scores)
-
-# 4. Extract the true meaning of the words I matched highly with.
-new_context_vector = probabilities @ Value_Matrix
+```mermaid
+flowchart LR
+    Q[Query Vector] -->|Apply RoPE| RQ[Rotated Query Vector]
+    K[Key Vector] -->|Apply RoPE| RK[Rotated Key Vector]
+    RQ --> Match{Calculate Match Score}
+    RK --> Match
 ```
 
-Notice the crucial step 2 (**Masking**). Because GPT trains by passing entire sentences in parallel, it physically *already knows* the next word in the training data. If we don't cover the future words up with a mask (the `-inf` trick), the network will just cheat and copy the answer, and it will never actually learn how to think!
+*For the exact trigonometric mathematical equations used to rotate these matrices, reference `llama.md` in the root folder!*

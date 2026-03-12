@@ -9,7 +9,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 import config
-from model_llama.step2a_block import Block
+from model_llama.step2a_block import Block, RMSNorm
 
 class GPTLanguageModel(nn.Module):
 
@@ -18,7 +18,7 @@ class GPTLanguageModel(nn.Module):
         # each token directly reads off the logits for the next token from a lookup table
         self.token_embedding_table = nn.Embedding(vocab_size, config.n_embd)
         self.blocks = nn.Sequential(*[Block(config.n_embd, n_head=config.n_head) for _ in range(config.n_layer)])
-        self.ln_f = nn.LayerNorm(config.n_embd) # final layer norm
+        self.ln_f = RMSNorm(config.n_embd) # final layer norm
 
         # better init, not covered in the original Karpathy video but good practice
         self.apply(self._init_weights)
