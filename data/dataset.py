@@ -16,7 +16,7 @@ data_path = os.path.join(parent_dir, 'input.txt')
 with open(data_path, 'r', encoding='utf-8') as f:
     text = f.read()
 
-from model.step1_tokenizer import encoder
+from shared.step1_tokenizer import encoder
 
 # Train and validation splits
 data = torch.tensor(encoder.encode(text), dtype=torch.long)

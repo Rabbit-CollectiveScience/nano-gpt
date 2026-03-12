@@ -1,5 +1,9 @@
 import torch
 
+# Architecture Selection
+# Options: 'gpt2' (Classic absolute embeddings) or 'llama' (Modern RoPE embeddings)
+model_version = 'gpt2'
+
 # Hyperparameters based on standard character-level GPT
 batch_size = 8 # shrunk to fit MPS memory
 block_size = 64 # shrunk to fit MPS memory

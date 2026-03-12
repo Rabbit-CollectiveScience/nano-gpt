@@ -9,7 +9,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 import config
-from model.step2a_block import Block
+from model_gpt2.step2a_block import Block
 
 class GPTLanguageModel(nn.Module):
 

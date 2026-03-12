@@ -9,9 +9,15 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 import config
-from model.step1_tokenizer import encoder
-from model.step2_gpt import GPTLanguageModel
-from model.step3_output import OutputHead
+from shared.step1_tokenizer import encoder
+from shared.step3_output import OutputHead
+
+if config.model_version == 'gpt2':
+    from model_gpt2.step2_gpt import GPTLanguageModel
+elif config.model_version == 'llama':
+    from model_llama.step2_gpt import GPTLanguageModel
+else:
+    raise ValueError(f"Unknown model_version: {config.model_version}")
 
 # Ensure the model file exists before trying to load it
 model_path = os.path.join(current_dir, config.checkpoint_path)

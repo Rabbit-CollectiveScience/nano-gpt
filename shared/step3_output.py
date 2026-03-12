@@ -9,7 +9,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 import config
-from model.step1_tokenizer import encoder
+from shared.step1_tokenizer import encoder
 
 class OutputHead(nn.Module):
     def __init__(self, vocab_size):
