@@ -10,7 +10,7 @@ if parent_dir not in sys.path:
 
 import config
 from data.dataset import vocab_size, decode
-from model.gpt import GPTLanguageModel
+from model.step1_gpt import GPTLanguageModel
 
 # Ensure the model file exists before trying to load it
 model_path = os.path.join(current_dir, config.checkpoint_path)

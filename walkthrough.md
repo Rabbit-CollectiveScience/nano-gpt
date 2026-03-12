@@ -8,17 +8,36 @@ When you run `generate.py` and give it a context, here is exactly how that text 
 
 ```mermaid
 flowchart TD
-    A[Input Text] -->|1. Tokenizer| B(List of Integers)
-    B -->|2. Embedding Table| C{Vectors: Meaning + Position}
-    C -->|3. Transformer Blocks| D[Attention & FeedForward]
-    D -->|4. Final Layer Norm| E(Logits)
-    E -->|5. Softmax| F((Probabilities))
-    F -->|6. Sample| G[Next Word Prediction]
+    %% Base Data Processing
+    A([Input Text]) -->|Tokenizer| B(data/dataset.py)
+    B -->|Integers| C[step1_gpt.py: Embedding Table]
+    
+    %% The hierarchical nesting of the models
+    subgraph "step1_gpt.py (The Full Language Model)"
+        direction TB
+        
+        subgraph "step2_block.py (Repeated Transformer Layers)"
+            direction TB
+            D[step4_multihead.py] 
+            E[step5_attention.py: Single Heads]
+            F[step3_feedforward.py: Computation]
+            
+            D -->|Contains| E
+            D -->|Passes Output to| F
+        end
+        
+        C -->|Tokens enter| D
+        F -->|Tokens exit| G(Final Layer Norm)
+    end
+    
+    %% The Output
+    G --> H(Logits & Softmax)
+    H --> I([Next Word Prediction])
 ```
 
 ## 2. Inside the Transformer Block
 
-The true magic happens inside our `model/block.py` file. Each Block is a repeated factory floor. The tokens enter the floor, perform two separate operations, and leave.
+The true magic happens inside our `model/step2_block.py` file. Each Block is a repeated factory floor. The tokens enter the floor, perform two separate operations, and leave.
 
 ```mermaid
 flowchart LR
@@ -26,7 +45,7 @@ flowchart LR
     
     %% Path A: Communications
     Add1 --> LN1[LayerNorm]
-    LN1 --> SA[Self-Attention]
+    LN1 --> SA[step5_attention & step4_multihead]
     SA --> Add2((+))
     
     %% Residual Math
@@ -34,7 +53,7 @@ flowchart LR
     
     %% Path B: Computation
     Add2 --> LN2[LayerNorm]
-    LN2 --> FF[FeedForward]
+    LN2 --> FF[step3_feedforward]
     FF --> Add3((+))
     
     %% Residual Math
@@ -42,13 +61,13 @@ flowchart LR
     
     Add3 --> Finish[Tokens Leave Block]
 ```
-* **Self-Attention** is where the tokens *communicate* with each other to gather context.
-* **FeedForward** is where each token takes exactly what it just learned and *computes* it individually before passing it to the next block.
+* **Self-Attention** (`step5` & `step4`) is where the tokens *communicate* with each other to gather context.
+* **FeedForward** (`step3`) is where each token takes exactly what it just learned and *computes* it individually before passing it to the next block.
 * **The `(+)` signs** represent "Residual Connections." These are crucial for keeping the model stable. We add the raw input back onto the processed output so the original meaning is never lost!
 
 ## 3. How Self-Attention Thinks (Pseudo-Code)
 
-If you open `model/attention.py`, the core math is `softmax(Q @ K^T) @ V`. Here is what that actually means:
+If you open `model/step5_attention.py`, the core math is `softmax(Q @ K^T) @ V`. Here is what that actually means:
 
 ```python
 def explain_self_attention(sentence):

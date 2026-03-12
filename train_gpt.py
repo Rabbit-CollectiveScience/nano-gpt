@@ -1,7 +1,7 @@
 import torch
 import config
 from data.dataset import get_batch, vocab_size, decode
-from model.gpt import GPTLanguageModel
+from model.step1_gpt import GPTLanguageModel
 
 # Instantiating the model
 model = GPTLanguageModel(vocab_size)
