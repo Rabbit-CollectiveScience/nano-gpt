@@ -9,18 +9,18 @@ When you run `generate.py` and give it a context, here is exactly how that text 
 ```mermaid
 flowchart TD
     %% Base Data Processing
-    A([Input Text]) -->|1. Tokenizer| B(step1_tokenizer.py)
-    B -->|Integers| C[step2_gpt.py: Embedding Table]
+    A([Input Text]) -->|1. Tokenizer| B(shared/step1_tokenizer.py)
+    B -->|Integers| C[Active Model Brain]
     
     %% The hierarchical nesting of the models
-    subgraph "step2_gpt.py (The Deep Learning Brain)"
+    subgraph "Active Model Brain (model_gpt2 or model_llama)"
         direction TB
         
-        subgraph "step2a_block.py (Repeated Transformer Layers)"
+        subgraph "Transformer Layers"
             direction TB
-            D[step2a2_multihead.py] 
-            E[step2a2a_attention.py: Single Heads]
-            F[step2a1_feedforward.py: Computation]
+            D[Multihead Attention] 
+            E[Single Attention Heads]
+            F[FeedForward Computation]
             
             D -->|Contains| E
             D -->|Passes Output to| F
@@ -31,13 +31,13 @@ flowchart TD
     end
     
     %% The Output
-    G -->|Context Vectors| H(step3_output.py: Logits & Softmax)
+    G -->|Context Vectors| H(shared/step3_output.py: Logits & Softmax)
     H --> I([Next Word Prediction])
 ```
 
 ## 2. Inside the Transformer Block
 
-The true magic happens inside our `model/step2a_block.py` file. Each Block is a repeated factory floor. The tokens enter the floor, perform two separate operations, and leave.
+The true magic happens inside the Transformer Block layer. Each Block is a repeated factory floor. The tokens enter the floor, perform two separate operations, and leave.
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ flowchart LR
     
     %% Path A: Communications
     Add1 --> LN1[LayerNorm]
-    LN1 --> SA[step2a2a_attention & step2a2_multihead]
+    LN1 --> SA[Attention & Multihead]
     SA --> Add2((+))
     
     %% Residual Math
@@ -53,7 +53,7 @@ flowchart LR
     
     %% Path B: Computation
     Add2 --> LN2[LayerNorm]
-    LN2 --> FF[step2a1_feedforward]
+    LN2 --> FF[FeedForward Processing]
     FF --> Add3((+))
     
     %% Residual Math
@@ -61,13 +61,13 @@ flowchart LR
     
     Add3 --> Finish[Tokens Leave Block]
 ```
-* **Self-Attention** (`step2a2a` & `step2a2`) is where the tokens *communicate* with each other to gather context.
-* **FeedForward** (`step2a1`) is where each token takes exactly what it just learned and *computes* it individually before passing it to the next block.
+* **Self-Attention** is where the tokens *communicate* with each other to gather context.
+* **FeedForward** is where each token takes exactly what it just learned and *computes* it individually before passing it to the next block.
 * **The `(+)` signs** represent "Residual Connections." These are crucial for keeping the model stable. We add the raw input back onto the processed output so the original meaning is never lost!
 
 ## 3. How Self-Attention Thinks (Pseudo-Code)
 
-If you open `model/step2a2a_attention.py`, the core math is `softmax(Q @ K^T) @ V`. Here is what that actually means:
+If we examine the Attention Head, the core math relies on three concepts: `Query (Q)`, `Key (K)`, and `Value (V)`. Here is what that actually means:
 
 ```python
 def explain_self_attention(sentence):
@@ -111,24 +111,3 @@ flowchart TD
     
     C -->|Loss is near 0| G[Done Training. Save nano_gpt.pt]
 ```
-
-## 5. The Mathematical Source of Truth
-
-For developers who want to map the code directly back to the original *Attention Is All You Need* paper, here are the core equations running under the hood:
-
-### Self-Attention
-The core operation inside `step2a2a_attention.py`:
-$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
-
-### Multi-Head Attention
-The concatenation operation inside `step2a2_multihead.py`:
-$$ \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O $$
-$$ \text{where } \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $$
-
-### FeedForward Network
-The computation operation inside `step2a1_feedforward.py` (using ReLU activation):
-$$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
-
-### Layer Normalization
-The stabilizing function used before Attention and FeedForward:
-$$ \text{LayerNorm}(x) = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \odot \gamma + \beta $$
