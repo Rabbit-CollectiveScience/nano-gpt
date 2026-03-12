@@ -1,13 +1,4 @@
 import torch
-import sys
-import os
-
-# Set up paths to import from parent directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
-
 import config
 from data.dataset import get_batch, vocab_size, decode
 from model.gpt import GPTLanguageModel
