@@ -111,3 +111,24 @@ flowchart TD
     
     C -->|Loss is near 0| G[Done Training. Save nano_gpt.pt]
 ```
+
+## 5. The Mathematical Source of Truth
+
+For developers who want to map the code directly back to the original *Attention Is All You Need* paper, here are the core equations running under the hood:
+
+### Self-Attention
+The core operation inside `step2a2a_attention.py`:
+$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
+
+### Multi-Head Attention
+The concatenation operation inside `step2a2_multihead.py`:
+$$ \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O $$
+$$ \text{where } \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) $$
+
+### FeedForward Network
+The computation operation inside `step2a1_feedforward.py` (using ReLU activation):
+$$ \text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2 $$
+
+### Layer Normalization
+The stabilizing function used before Attention and FeedForward:
+$$ \text{LayerNorm}(x) = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \odot \gamma + \beta $$
