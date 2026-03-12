@@ -16,11 +16,11 @@ flowchart TD
     subgraph "step1_gpt.py (The Full Language Model)"
         direction TB
         
-        subgraph "step2_block.py (Repeated Transformer Layers)"
+        subgraph "step1a_block.py (Repeated Transformer Layers)"
             direction TB
-            D[step4_multihead.py] 
-            E[step5_attention.py: Single Heads]
-            F[step3_feedforward.py: Computation]
+            D[step1a2_multihead.py] 
+            E[step1a2a_attention.py: Single Heads]
+            F[step1a1_feedforward.py: Computation]
             
             D -->|Contains| E
             D -->|Passes Output to| F
@@ -37,7 +37,7 @@ flowchart TD
 
 ## 2. Inside the Transformer Block
 
-The true magic happens inside our `model/step2_block.py` file. Each Block is a repeated factory floor. The tokens enter the floor, perform two separate operations, and leave.
+The true magic happens inside our `model/step1a_block.py` file. Each Block is a repeated factory floor. The tokens enter the floor, perform two separate operations, and leave.
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ flowchart LR
     
     %% Path A: Communications
     Add1 --> LN1[LayerNorm]
-    LN1 --> SA[step5_attention & step4_multihead]
+    LN1 --> SA[step1a2a_attention & step1a2_multihead]
     SA --> Add2((+))
     
     %% Residual Math
@@ -53,7 +53,7 @@ flowchart LR
     
     %% Path B: Computation
     Add2 --> LN2[LayerNorm]
-    LN2 --> FF[step3_feedforward]
+    LN2 --> FF[step1a1_feedforward]
     FF --> Add3((+))
     
     %% Residual Math
@@ -61,13 +61,13 @@ flowchart LR
     
     Add3 --> Finish[Tokens Leave Block]
 ```
-* **Self-Attention** (`step5` & `step4`) is where the tokens *communicate* with each other to gather context.
-* **FeedForward** (`step3`) is where each token takes exactly what it just learned and *computes* it individually before passing it to the next block.
+* **Self-Attention** (`step1a2a` & `step1a2`) is where the tokens *communicate* with each other to gather context.
+* **FeedForward** (`step1a1`) is where each token takes exactly what it just learned and *computes* it individually before passing it to the next block.
 * **The `(+)` signs** represent "Residual Connections." These are crucial for keeping the model stable. We add the raw input back onto the processed output so the original meaning is never lost!
 
 ## 3. How Self-Attention Thinks (Pseudo-Code)
 
-If you open `model/step5_attention.py`, the core math is `softmax(Q @ K^T) @ V`. Here is what that actually means:
+If you open `model/step1a2a_attention.py`, the core math is `softmax(Q @ K^T) @ V`. Here is what that actually means:
 
 ```python
 def explain_self_attention(sentence):
