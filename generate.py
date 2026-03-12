@@ -9,8 +9,9 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 import config
-from data.dataset import vocab_size, decode
-from model.step1_gpt import GPTLanguageModel
+from model.step1_tokenizer import encoder
+from model.step2_gpt import GPTLanguageModel
+from model.step3_output import OutputHead
 
 # Ensure the model file exists before trying to load it
 model_path = os.path.join(current_dir, config.checkpoint_path)
@@ -21,23 +22,30 @@ if not os.path.exists(model_path):
 
 # Instantiate the blank model structure
 print("Initializing model...")
-model = GPTLanguageModel(vocab_size)
+model = GPTLanguageModel(encoder.vocab_size)
+head = OutputHead(encoder.vocab_size)
 
 # Load the saved state dictionary
 print(f"Loading weights from {config.checkpoint_path}...")
-model.load_state_dict(torch.load(model_path, map_location=config.device, weights_only=True))
+checkpoint = torch.load(model_path, map_location=config.device, weights_only=True)
+model.load_state_dict(checkpoint['model_state_dict'])
+head.load_state_dict(checkpoint['head_state_dict'])
 
 # Move it to the correct device (CPU, CUDA, or MPS)
 m = model.to(config.device)
+h = head.to(config.device)
+
 m.eval() # Set model to evaluation mode
+h.eval()
 
 # Print parameters
-print(sum(p.numel() for p in m.parameters())/1e6, 'M parameters')
+total_params = sum(p.numel() for p in m.parameters()) + sum(p.numel() for p in h.parameters())
+print(total_params/1e6, 'M parameters')
 
 print("\n--- Generating some text ---")
 # Start with a single blank token (0) as the context
 context = torch.zeros((1, 1), dtype=torch.long, device=config.device)
 
 # Generate and decode!
-generated_tokens = m.generate(context, max_new_tokens=500)[0].tolist()
-print(decode(generated_tokens))
+generated_tokens = h.generate(m, context, max_new_tokens=500)[0].tolist()
+print(encoder.decode(generated_tokens))

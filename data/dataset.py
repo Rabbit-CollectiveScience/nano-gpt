@@ -16,21 +16,10 @@ data_path = os.path.join(parent_dir, 'input.txt')
 with open(data_path, 'r', encoding='utf-8') as f:
     text = f.read()
 
-import tiktoken
-
-# Load OpenAI's GPT-4 BPE tokenizer
-enc = tiktoken.get_encoding("cl100k_base")
-
-# The vocabulary size of this tokenizer is exactly 100,277
-vocab_size = enc.n_vocab
-
-# Encoder: takes a string, outputs a list of integers
-encode = lambda s: enc.encode(s, allowed_special={"<|endoftext|>"})
-# Decoder: takes a list of integers, outputs a string
-decode = lambda l: enc.decode(l)
+from model.step1_tokenizer import encoder
 
 # Train and validation splits
-data = torch.tensor(encode(text), dtype=torch.long)
+data = torch.tensor(encoder.encode(text), dtype=torch.long)
 n = int(0.9 * len(data)) # first 90% will be train, rest val
 train_data = data[:n]
 val_data = data[n:]

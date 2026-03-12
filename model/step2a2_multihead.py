@@ -8,7 +8,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 import config
-from model.step1a2a_attention import Head
+from model.step2a2a_attention import Head
 
 class MultiHeadAttention(nn.Module):
     """ multiple heads of self-attention in parallel """

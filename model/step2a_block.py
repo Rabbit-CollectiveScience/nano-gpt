@@ -7,8 +7,8 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 import config
-from model.step1a2_multihead import MultiHeadAttention
-from model.step1a1_feedforward import FeedForward
+from model.step2a2_multihead import MultiHeadAttention
+from model.step2a1_feedforward import FeedForward
 
 class Block(nn.Module):
     """ Transformer block: communication followed by computation """
