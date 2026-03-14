@@ -55,7 +55,7 @@ class SparseMoE(nn.Module):
             for expert_idx, expert in enumerate(self.experts):
                 # Find the words that were assigned to THIS specific expert
                 # The _ says "I don't care about the true/false list, just give me the raw positions"
-                _, word_positions = torch.where(expert_ids_for_this_slot == expert_idx)
+                word_positions = torch.where(expert_ids_for_this_slot == expert_idx)[0]
                 
                 # If anyone was assigned to this expert...
                 if len(word_positions) > 0:

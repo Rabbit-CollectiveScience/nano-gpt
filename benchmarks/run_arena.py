@@ -117,11 +117,16 @@ if __name__ == '__main__':
     from model_mistral.step2_gpt import GPTLanguageModel as Mistral
     mistral_results = run_benchmark(Mistral, "mistral", test_data)
 
-    # 5. Save Scorecard
+    # 5. Run Mixtral Benchmark
+    from model_mixtral.step2_gpt import GPTLanguageModel as Mixtral
+    mixtral_results = run_benchmark(Mixtral, "mixtral", test_data)
+
+    # 6. Save Scorecard
     scorecard = {
         "gpt2": gpt2_results,
         "llama": llama_results,
-        "mistral": mistral_results
+        "mistral": mistral_results,
+        "mixtral": mixtral_results
     }
     
     save_path = os.path.join(current_dir, 'results', 'benchmark_results.json')

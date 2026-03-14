@@ -31,8 +31,10 @@ def plot_benchmark():
             color, style = '#1f77b4', '-'  # Blue solid
         elif model_name == 'llama':
             color, style = '#d62728', '--' # Red dashed
+        elif model_name == 'mistral':
+            color, style = '#2ca02c', '-.' # Green dash-dot
         else:
-            color, style = '#2ca02c', '-.' # Green dash-dot (Mistral/Mixtral)
+            color, style = '#ff7f0e', ':'  # Orange dotted (Mixtral)
         
         # Add a rich label with parameter counts
         label = f"{model_name.upper()} ({results['parameters']/1e6:.1f}M params)"

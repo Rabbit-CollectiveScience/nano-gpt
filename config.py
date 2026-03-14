@@ -8,6 +8,8 @@ model_version = 'mistral'
 n_kv_heads = 1 # Number of Key/Value heads (Must divide evenly into n_head)
 
 # --- Mixtral (MoE) Specific Hyperparameters ---
+n_experts = 4 # Total number of SwiGLU Experts in each layer
+num_experts_per_tok = 2 # How many Experts handle each word
 
 # Hyperparameters based on standard character-level GPT
 batch_size = 8 # shrunk to fit MPS memory
