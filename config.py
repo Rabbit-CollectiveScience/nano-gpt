@@ -1,8 +1,13 @@
 import torch
 
 # Architecture Selection
-# Options: 'gpt2' (Classic absolute embeddings) or 'llama' (Modern RoPE embeddings)
-model_version = 'llama'
+# Choose which model to spin up: 'gpt2', 'llama', 'mixtral', or 'mistral'
+model_version = 'mistral'
+
+# --- Mistral (GQA) Specific Hyperparameters ---
+n_kv_heads = 1 # Number of Key/Value heads (Must divide evenly into n_head)
+
+# --- Mixtral (MoE) Specific Hyperparameters ---
 
 # Hyperparameters based on standard character-level GPT
 batch_size = 8 # shrunk to fit MPS memory

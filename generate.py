@@ -16,6 +16,8 @@ if config.model_version == 'gpt2':
     from model_gpt2.step2_gpt import GPTLanguageModel
 elif config.model_version == 'llama':
     from model_llama.step2_gpt import GPTLanguageModel
+elif config.model_version == 'mixtral':
+    from model_mixtral.step2_gpt import GPTLanguageModel
 else:
     raise ValueError(f"Unknown model_version: {config.model_version}")
 

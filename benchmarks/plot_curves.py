@@ -27,8 +27,12 @@ def plot_benchmark():
         losses = [entry['val_loss'] for entry in results['history']]
         
         # Color coding
-        color = '#1f77b4' if model_name == 'gpt2' else '#d62728' 
-        style = '-' if model_name == 'gpt2' else '--'
+        if model_name == 'gpt2':
+            color, style = '#1f77b4', '-'  # Blue solid
+        elif model_name == 'llama':
+            color, style = '#d62728', '--' # Red dashed
+        else:
+            color, style = '#2ca02c', '-.' # Green dash-dot (Mistral/Mixtral)
         
         # Add a rich label with parameter counts
         label = f"{model_name.upper()} ({results['parameters']/1e6:.1f}M params)"
