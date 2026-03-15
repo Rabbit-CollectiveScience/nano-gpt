@@ -14,6 +14,61 @@ body, html, #root {
   width: 100vw;
 }
 
+.sidebar-pane {
+  width: 250px;
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 10px 15px;
+  background-color: #252526;
+  border-bottom: 1px solid #333;
+  font-size: 14px;
+}
+
+.sidebar-content {
+  padding: 15px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-category {
+  padding: 0 15px 10px 15px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #888;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.lesson-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lesson-item {
+  padding: 8px 15px 8px 25px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #ccc;
+  border-left: 2px solid transparent;
+}
+
+.lesson-item:hover {
+  background-color: #2a2d2e;
+  color: #fff;
+}
+
+.lesson-item.active {
+  background-color: #37373d;
+  color: #fff;
+  border-left-color: #0e639c;
+}
+
 .editor-pane {
   flex: 1;
   border-right: 1px solid #333;

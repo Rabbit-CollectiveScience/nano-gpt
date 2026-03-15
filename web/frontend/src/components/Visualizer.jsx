@@ -55,8 +55,63 @@ function AttentionHead({ headMatrix, headIdx, T, totalHeads }) {
   );
 }
 
+function MatrixVisualizer({ payload }) {
+  // payload is arbitrary 2D matrix [Rows][Cols]
+  const Rows = payload.length;
+  const Cols = payload[0].length;
+  const spacingX = 1.2;
+  const spacingZ = 1.2;
+
+  const offsetX = -(Cols * spacingX) / 2 + (spacingX / 2);
+  const offsetZ = -(Rows * spacingZ) / 2 + (spacingZ / 2);
+
+  // find max value for dynamic scaling
+  let maxVal = 0.001;
+  let minVal = 0;
+  for (let r=0; r<Rows; r++){
+    for (let c=0; c<Cols; c++) {
+       if (payload[r][c] > maxVal) maxVal = payload[r][c];
+       if (payload[r][c] < minVal) minVal = payload[r][c];
+    }
+  }
+  const range = maxVal - minVal;
+
+  const cubes = [];
+  for (let r = 0; r < Rows; r++) {
+    for (let c = 0; c < Cols; c++) {
+      let val = payload[r][c];
+      if (Number.isNaN(val)) val = 0;
+      
+      const normalized = range === 0 ? 0 : (val - minVal) / range;
+      // Cube height based on intensity
+      const height = Math.max(0.05, Math.abs(normalized) * 4);
+      const hue = (1 - normalized) * 240; 
+      
+      cubes.push(
+        <mesh 
+          key={`${r}-${c}`} 
+          position={[c * spacingX, height / 2, r * spacingZ]}
+        >
+          <boxGeometry args={[1, height, 1]} />
+          <meshStandardMaterial 
+            color={`hsl(${Math.max(0, Math.floor(hue))}, 100%, 50%)`} 
+            roughness={0.2}
+            metalness={0.1}
+          />
+        </mesh>
+      );
+    }
+  }
+
+  return (
+    <group position={[offsetX, 0, offsetZ]}>
+      {cubes}
+    </group>
+  );
+}
+
 export default function Visualizer({ data, loading, error }) {
-  // data is expecting an array of matrices: [n_heads, T, T]
+  // data is now { payload: tensor/object, type: "attention" | "router" }
   return (
     <div className="visualizer-pane">
       <div className="visualizer-header">
@@ -72,7 +127,7 @@ export default function Visualizer({ data, loading, error }) {
           </div>
         )}
         {!loading && !error && !data && (
-          <div style={{ position: 'absolute', top: 20, left: 20, color: '#888', zIndex: 10 }}>Write PyTorch math and click Run to visualize the resulting tensors in 3D!</div>
+          <div style={{ position: 'absolute', top: 20, left: 20, color: '#888', zIndex: 10 }}>Select a lesson and click Run to visualize the architecture in 3D!</div>
         )}
         
         {/* The 3D WebGL Canvas */}
@@ -82,18 +137,26 @@ export default function Visualizer({ data, loading, error }) {
           <pointLight position={[10, 20, 10]} intensity={1.5} />
           <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
           
-          {data && data.map((headMatrix, idx) => (
+          {/* Dynamic Component Rendering */}
+          {data && data.type === 'attention' && data.payload.map((headMatrix, idx) => (
             <AttentionHead 
               key={idx} 
               headMatrix={headMatrix} 
               headIdx={idx} 
               T={headMatrix.length}
-              totalHeads={data.length}
+              totalHeads={data.payload.length}
             />
           ))}
+
+          {data && data.type === 'matrix' && (
+            <MatrixVisualizer payload={data.payload} />
+          )}
           
           {/* Aesthetic grid floor */}
-          <gridHelper args={[50, 50, '#333333', '#222222']} position={[0, data ? -(data.length * 5)/2 - 1 : -1, 0]} />
+          <gridHelper 
+            args={[50, 50, '#333333', '#222222']} 
+            position={[0, Object.is(data?.type, 'attention') ? -(data.payload.length * 5)/2 - 1 : -1, 0]} 
+          />
         </Canvas>
       </div>
     </div>
