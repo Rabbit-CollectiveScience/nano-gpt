@@ -39,18 +39,28 @@ const CURRICULUM = [
     name: "LLaMA 2 (2023)",
     lessons: [
       {
-        title: "Step 1: Rotary Embeddings",
+        title: "Step 1: Token Embeddings",
+        code: `import torch\n\n# Hyperparameters\nVocab_Size = 32000 # LLaMA has a smaller vocabulary than GPT-2\nEmbed_Dim = 16\nT = 8\n\n# Simulate 8 input tokens\ntokens = torch.tensor([42, 105, 3, 99, 12, 4, 881, 7])\n\n# The Embedding Table\ntorch.manual_seed(1337)\nwte = torch.randn(Vocab_Size, Embed_Dim)\n\ntoken_embeddings = wte[tokens]\n\nvisualize_data = token_embeddings.detach().tolist()`,
+        type: "matrix"
+      },
+      {
+        title: "Step 2: Rotary Embeddings",
         code: `import torch\n\n# LLaMA uses RoPE instead of Absolute Positions\nT = 8\nEmbed_Dim = 16\ntorch.manual_seed(1337)\n\nvisualize_data = torch.randn(T, Embed_Dim).tolist()`,
         type: "matrix"
       },
       {
-        title: "Step 2: Self-Attention (RMSNorm)",
+        title: "Step 3: Self-Attention (RMSNorm)",
         code: `import torch\nimport torch.nn.functional as F\nimport math\n\nn_heads = 4\nhead_dim = 16\nT = 8\n\ntorch.manual_seed(1337)\nq = torch.randn(1, n_heads, T, head_dim)\nk = torch.randn(1, n_heads, T, head_dim)\n\nscores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(head_dim)\n\ntril = torch.tril(torch.ones(T, T))\nscores = scores.masked_fill(tril == 0, float('-inf'))\npercentages = F.softmax(scores, dim=-1)\n\nvisualize_data = percentages[0].detach().tolist()`,
         type: "attention"
       },
       {
-        title: "Step 3: SwiGLU Feed-Forward",
+        title: "Step 4: SwiGLU Feed-Forward",
         code: `import torch\nimport torch.nn.functional as F\n\nEmbed_Dim = 16\nT = 8\n\ntorch.manual_seed(1337)\nx = torch.randn(T, Embed_Dim)\n\nw1 = torch.nn.Linear(Embed_Dim, 4 * Embed_Dim, bias=False)\nw2 = torch.nn.Linear(4 * Embed_Dim, Embed_Dim, bias=False)\nw3 = torch.nn.Linear(Embed_Dim, 4 * Embed_Dim, bias=False)\n\ngate = F.silu(w1(x)) * w3(x)\nfinal_x = w2(gate)\n\nvisualize_data = gate.detach().tolist()`,
+        type: "matrix"
+      },
+      {
+        title: "Step 5: Output Logits",
+        code: `import torch\nimport torch.nn.functional as F\n\nEmbed_Dim = 16\nT = 8\nVocab_Size = 15\n\ntorch.manual_seed(1337)\nfinal_hidden_states = torch.randn(T, Embed_Dim)\n\nlm_head = torch.nn.Linear(Embed_Dim, Vocab_Size, bias=False)\nraw_logits = lm_head(final_hidden_states)\nprobabilities = F.softmax(raw_logits, dim=-1)\n\nvisualize_data = probabilities.detach().tolist()`,
         type: "matrix"
       }
     ]
@@ -60,18 +70,28 @@ const CURRICULUM = [
     name: "Mistral 7B (2023)",
     lessons: [
       {
-        title: "Step 1: Rotary Embeddings",
+        title: "Step 1: Token Embeddings",
+        code: `import torch\n\n# Hyperparameters\nVocab_Size = 32000 # Mistral shares LLaMA's vocab size\nEmbed_Dim = 16\nT = 8\n\n# Simulate 8 input tokens\ntokens = torch.tensor([42, 105, 3, 99, 12, 4, 881, 7])\n\n# The Embedding Table\ntorch.manual_seed(1337)\nwte = torch.randn(Vocab_Size, Embed_Dim)\n\ntoken_embeddings = wte[tokens]\n\nvisualize_data = token_embeddings.detach().tolist()`,
+        type: "matrix"
+      },
+      {
+        title: "Step 2: Rotary Embeddings",
         code: `import torch\n\n# Mistral dropped Absolute positions for Rotary Position Embeddings (RoPE)\n# (We will visualize this complex math later!)\n\nT = 8\nEmbed_Dim = 16\ntorch.manual_seed(1337)\n\n# Just returning random data as a placeholder for now\nvisualize_data = torch.randn(T, Embed_Dim).tolist()`,
         type: "matrix"
       },
       {
-        title: "Step 2: Grouped-Query Attention",
+        title: "Step 3: Grouped-Query Attention",
         code: `import torch\nimport torch.nn.functional as F\nimport math\n\nn_heads = 4\nn_kv_heads = 1\nhead_dim = 16\nT = 8 \n\ntorch.manual_seed(1337)\nq = torch.randn(1, n_heads, T, head_dim)\nk = torch.randn(1, n_kv_heads, T, head_dim)\n\n# ⚠️ We mathematically duplicate the 1 Key into 4 clones so the matrices match!\nn_rep = n_heads // n_kv_heads\nk_expanded = torch.repeat_interleave(k, n_rep, dim=1)\n\n# Now we can safely run the Attention Formula\nscores = torch.matmul(q, k_expanded.transpose(-2, -1)) / math.sqrt(head_dim)\n\ntril = torch.tril(torch.ones(T, T))\nscores = scores.masked_fill(tril == 0, float('-inf'))\npercentages = F.softmax(scores, dim=-1)\n\nvisualize_data = percentages[0].detach().tolist()`,
         type: "attention"
       },
       {
-        title: "Step 3: SwiGLU Feed-Forward",
+        title: "Step 4: SwiGLU Feed-Forward",
         code: `import torch\nimport torch.nn.functional as F\n\nEmbed_Dim = 16\nT = 8\n\n# Input to the MLP (from Attention)\ntorch.manual_seed(1337)\nx = torch.randn(T, Embed_Dim)\n\n# Mistral uses the SwiGLU 3-matrix architecture instead of the GPT-2 2-matrix architecture\nw1 = torch.nn.Linear(Embed_Dim, 4 * Embed_Dim, bias=False)\nw2 = torch.nn.Linear(4 * Embed_Dim, Embed_Dim, bias=False)\nw3 = torch.nn.Linear(Embed_Dim, 4 * Embed_Dim, bias=False)\n\n# The Swish/Silu gating mechanism\ngate = F.silu(w1(x)) * w3(x)\nfinal_x = w2(gate)\n\n# Visualizing the gating matrix before it compresses back down\nvisualize_data = gate.detach().tolist()`,
+        type: "matrix"
+      },
+      {
+        title: "Step 5: Output Logits",
+        code: `import torch\nimport torch.nn.functional as F\n\nEmbed_Dim = 16\nT = 8\nVocab_Size = 15\n\ntorch.manual_seed(1337)\nfinal_hidden_states = torch.randn(T, Embed_Dim)\n\nlm_head = torch.nn.Linear(Embed_Dim, Vocab_Size, bias=False)\nraw_logits = lm_head(final_hidden_states)\nprobabilities = F.softmax(raw_logits, dim=-1)\n\nvisualize_data = probabilities.detach().tolist()`,
         type: "matrix"
       }
     ]
@@ -81,19 +101,29 @@ const CURRICULUM = [
     name: "Mixtral 8x7B (2024)",
     lessons: [
       {
-        title: "Step 1: Rotary Embeddings",
+        title: "Step 1: Token Embeddings",
+        code: `import torch\n\n# Hyperparameters\nVocab_Size = 32000 # Mixtral shares LLaMA's vocab size\nEmbed_Dim = 16\nT = 8\n\n# Simulate 8 input tokens\ntokens = torch.tensor([42, 105, 3, 99, 12, 4, 881, 7])\n\n# The Embedding Table\ntorch.manual_seed(1337)\nwte = torch.randn(Vocab_Size, Embed_Dim)\n\ntoken_embeddings = wte[tokens]\n\nvisualize_data = token_embeddings.detach().tolist()`,
+        type: "matrix"
+      },
+      {
+        title: "Step 2: Rotary Embeddings",
         code: `import torch\n\nT = 8\nEmbed_Dim = 16\ntorch.manual_seed(1337)\n\nvisualize_data = torch.randn(T, Embed_Dim).tolist()`,
         type: "matrix"
       },
       {
-        title: "Step 2: Grouped-Query Attention",
+        title: "Step 3: Grouped-Query Attention",
         code: `import torch\nimport torch.nn.functional as F\nimport math\n\nn_heads = 4\nn_kv_heads = 1\nhead_dim = 16\nT = 8 \n\ntorch.manual_seed(1337)\nq = torch.randn(1, n_heads, T, head_dim)\nk = torch.randn(1, n_kv_heads, T, head_dim)\n\nn_rep = n_heads // n_kv_heads\nk_expanded = torch.repeat_interleave(k, n_rep, dim=1)\n\nscores = torch.matmul(q, k_expanded.transpose(-2, -1)) / math.sqrt(head_dim)\n\ntril = torch.tril(torch.ones(T, T))\nscores = scores.masked_fill(tril == 0, float('-inf'))\npercentages = F.softmax(scores, dim=-1)\n\nvisualize_data = percentages[0].detach().tolist()`,
         type: "attention"
       },
       {
-        title: "Step 3: Sparse MoE Router",
+        title: "Step 4: Sparse MoE Router",
         code: `import torch\nimport torch.nn.functional as F\n\n# Hyperparameters\nnum_experts = 4\nnum_experts_per_tok = 2\nT = 8\nhead_dim = 16\n\ntorch.manual_seed(1337)\nhidden_states = torch.randn(T, head_dim)\n\ngate = torch.nn.Linear(head_dim, num_experts, bias=False)\nrouter_logits = gate(hidden_states)\n\nrouting_weights = F.softmax(router_logits, dim=1)\nrouting_weights, selected_experts = torch.topk(routing_weights, num_experts_per_tok, dim=-1)\nrouting_weights /= routing_weights.sum(dim=-1, keepdim=True)\n\nvisualize_data = {\n    "selected_experts": selected_experts.tolist(),\n    "routing_weights": routing_weights.tolist(),\n    "num_experts": num_experts,\n    "T": T\n}`,
         type: "router"
+      },
+      {
+        title: "Step 5: Output Logits",
+        code: `import torch\nimport torch.nn.functional as F\n\nEmbed_Dim = 16\nT = 8\nVocab_Size = 15\n\ntorch.manual_seed(1337)\nfinal_hidden_states = torch.randn(T, Embed_Dim)\n\nlm_head = torch.nn.Linear(Embed_Dim, Vocab_Size, bias=False)\nraw_logits = lm_head(final_hidden_states)\nprobabilities = F.softmax(raw_logits, dim=-1)\n\nvisualize_data = probabilities.detach().tolist()`,
+        type: "matrix"
       }
     ]
   }
